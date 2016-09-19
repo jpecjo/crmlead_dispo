@@ -1,0 +1,13 @@
+mysql:
+  host: mysql.host
+  database: db_name
+  username: root
+  password: db_pass
+o365_smtp:
+  address: smtp.office365.com
+  port: 587
+  domain: office365.domain
+  username: user@domain.com
+  password: password
+  from: from@domain.com
+  to: to@domain.com
