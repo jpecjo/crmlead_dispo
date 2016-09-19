@@ -62,10 +62,11 @@ def parse_to_csv
   puts "Parse completed. File #{@end_phdatetime}_crm_lead_dispo_stat.csv is now available."
 end
 
+# Prepare to attach CSV file and send to email
 def send_email_with_attachment
   puts 'Preparing email...'
- end_phdatetime = @end_phdatetime
-  # Prepare to attach CSV file and send to email
+  end_phdatetime = @end_phdatetime
+
   options = { :address              => CONFIG["o365_smtp"]["address"],
               :port                 => CONFIG["o365_smtp"]["port"],
               :domain               => CONFIG["o365_smtp"]["domain"],
@@ -87,8 +88,8 @@ def send_email_with_attachment
   puts 'You got mail.'
 end
 
+# Cleaning up
 def cleanup
-  # Cleaning up
   puts 'Cleaning up...'
   File.delete("./#{@end_phdatetime}_crm_lead_dispo_stat.csv")
   puts "#{@end_phdatetime}_crm_lead_dispo_stat.csv has been deleted."
