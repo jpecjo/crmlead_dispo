@@ -12,13 +12,14 @@ CONFIG = YAML.load_file("./config.yml")
 
 # MySQL connection
 def connect_to_db
-  puts 'Connecting to server CONFIG["mysql"]["host"]...'
+  db_server = CONFIG["mysql"]["host"]
+  puts "Connecting to server #{db_server}..."
   @con = Mysql2::Client.new(
     :host => CONFIG["mysql"]["host"],
     :database => CONFIG["mysql"]["database"],
     :username => CONFIG["mysql"]["username"],
     :password => CONFIG["mysql"]["password"])
-  puts 'Connectiong successful!'
+  puts 'Connection successful!'
 end
 
 # MySQL query
