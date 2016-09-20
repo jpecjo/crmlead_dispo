@@ -1,11 +1,12 @@
 require 'mysql2'
 require 'csv'
 require 'mail'
+require 'spreadsheet'
 
 # Variables
 @start_datetime = (Date.today - 1).to_s + " 22:00:00"
 @end_datetime = Time.new.utc.strftime("%Y-%m-%d %H:%M:%S")
-@end_phdatetime = Time.new.strftime("%Y-%m-%d_%H%M")
+@end_phdatetime = Time.new.strftime("%Y%b%d_%H%M").to_s
 
 # Load configuration
 CONFIG = YAML.load_file("./config.yml")
@@ -46,8 +47,13 @@ def db_query
     SUM(lead.call_dispo='Hang Up') as 'Hang Up',
     SUM(lead.call_dispo='Too Far') as 'Too Far',
     SUM(lead.call_dispo='Disqualified') as 'Disqualified'
-  FROM lead LEFT JOIN user ON lead.assigned_user_id=user.id
-  WHERE lead.modified_at BETWEEN CAST('#{@start_datetime}' AS DATETIME) AND CAST('#{@end_datetime}' AS DATETIME)
+  FROM note LEFT JOIN lead ON note.parent_id = lead.id
+  LEFT JOIN user ON user.id = lead.assigned_user_id
+  WHERE note.modified_at BETWEEN CAST('#{@start_datetime}' AS DATETIME) AND CAST('#{@end_datetime}' AS DATETIME)
+  AND lead.call_dispo<>''
+  AND note.data NOT LIKE '%\"became\":{\"callDispo\":\"None\"}%'
+  AND note.data NOT LIKE '%\"assignedUserName\":%'
+  AND note.data NOT LIKE '{}'
   GROUP BY user.id")
   puts 'Query completed.'
 end
@@ -55,12 +61,45 @@ end
 # Save all rows into a CSV file
 def parse_to_csv
   puts 'Parsing results to CSV...'
-  CSV.open("./#{@end_phdatetime}_crm_lead_dispo_stat.csv", "wb") do |csv|
+  CSV.open("#{@end_phdatetime}_crm_lead_dispo_stat.csv", "wb", converters: :numeric) do |csv|
     @results.each(:as => :array) do |row|
       csv << row
     end
   end
+
+  # Get total count leads modified
+  # total_leads = Array.new
+  # CSV.foreach("#{@end_phdatetime}_crm_lead_dispo_stat.csv", "wb", converters: :numeric)
+
   puts "Parse completed. File #{@end_phdatetime}_crm_lead_dispo_stat.csv is now available."
+end
+
+
+# Convert to XLS
+def convert_to_xls
+  puts "Converting CSV to XLS..."
+  book = Spreadsheet::Workbook.new
+  sheet1 = book.create_worksheet
+
+  header_format = Spreadsheet::Format.new(
+    :color => :blue,
+    :weight => :bold,
+    :horizontal_align => :center,
+    :bottom => :double
+  )
+
+  sheet1.row(0).default_format = header_format
+
+  CSV.open("#{@end_phdatetime}_crm_lead_dispo_stat.csv", 'r') do |csv|
+    csv.each_with_index do |row, i|
+      sheet1.row(i).replace(row)
+    end
+  end
+
+
+
+  book.write("#{@end_phdatetime}_crm_lead_dispo_stat.xls")
+  puts "Done with the conversion."
 end
 
 # Prepare to attach CSV file and send to email
@@ -82,7 +121,7 @@ def send_email_with_attachment
     to       CONFIG["o365_smtp"]["to"]
     subject  "#{end_phdatetime} CRM Lead Dispo Stats"
     body     "Attached is the CRM lead disposition status as of #{end_phdatetime}."
-    add_file :filename => "./#{end_phdatetime}_crm_lead_dispo_stat.csv", :content => File.read("./#{end_phdatetime}_crm_lead_dispo_stat.csv")
+    add_file :filename => "#{end_phdatetime}_crm_lead_dispo_stat.xls", :content => File.read("#{end_phdatetime}_crm_lead_dispo_stat.xls")
   end
 
   mail.deliver
@@ -92,12 +131,13 @@ end
 # Cleaning up
 def cleanup
   puts 'Cleaning up...'
-  File.delete("./#{@end_phdatetime}_crm_lead_dispo_stat.csv")
+  File.delete("#{@end_phdatetime}_crm_lead_dispo_stat.csv")
   puts "#{@end_phdatetime}_crm_lead_dispo_stat.csv has been deleted."
 end
 
 connect_to_db
 db_query
 parse_to_csv
+convert_to_xls
 send_email_with_attachment
 cleanup
