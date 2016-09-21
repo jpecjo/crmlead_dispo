@@ -132,6 +132,7 @@ end
 def cleanup
   puts 'Cleaning up...'
   File.delete("#{@end_phdatetime}_crm_lead_dispo_stat.csv")
+  File.delete("#{@end_phdatetime}_crm_lead_dispo_stat.xls")
   puts "#{@end_phdatetime}_crm_lead_dispo_stat.csv has been deleted."
 end
 
