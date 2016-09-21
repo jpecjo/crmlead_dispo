@@ -9,7 +9,7 @@ require 'spreadsheet'
 @end_phdatetime = Time.new.strftime("%Y%b%d_%H%M").to_s
 
 # Load configuration
-CONFIG = YAML.load_file("./config.yml")
+CONFIG = YAML.load_file(File.join(__dir__, 'config.yml'))
 
 # MySQL connection
 def connect_to_db
