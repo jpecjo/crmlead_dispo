@@ -29,28 +29,28 @@ def db_query
   @results = @con.query("SELECT
     'Agent Name',
     'Qualified / Appointments',
-    'AM / VM /Fax',
+    'AM / VM / Fax /Busy Tone',
     'Not Interested',
-    'Disconnected / Wrong Number / Duplicate',
+    'Wrong Number / Duplicate',
     'No Answer',
     'Call Back',
     'Hang Up',
     'Too Far',
     'Disqualified',
     'Language Barrier',
-    'Busy tone'
+    'Disconnected'
   UNION SELECT CONCAT(user.first_name,' ',user.last_name) as 'Agent Name' ,
     SUM(lead.call_dispo='Qualified / Appointments') as 'Qualified / Appointments',
-    SUM(lead.call_dispo='AM / VM /Fax') as 'AM / VM / Fax',
+    SUM(lead.call_dispo='AM / VM / Fax /Busy Tone') as 'AM / VM / Fax /Busy Tone',
     SUM(lead.call_dispo='Not Interested') as 'Not Interested',
-    SUM(lead.call_dispo='Disconnected / Wrong Number / Duplicate') as 'Disconnected / Wrong Number / Duplicate',
+    SUM(lead.call_dispo='Wrong Number / Duplicate') as 'Wrong Number / Duplicate',
     SUM(lead.call_dispo='No Answer') as 'No Answer',
     SUM(lead.call_dispo='Call Back') as 'Call Back',
     SUM(lead.call_dispo='Hang Up') as 'Hang Up',
     SUM(lead.call_dispo='Too Far') as 'Too Far',
     SUM(lead.call_dispo='Disqualified') as 'Disqualified',
     SUM(lead.call_dispo='Language Barrier') as 'Language Barrier',
-    SUM(lead.call_dispo='Busy tone') as 'Busy tone'
+    SUM(lead.call_dispo='Disconnected') as 'Disconnected'
   FROM note LEFT JOIN lead ON note.parent_id = lead.id
   LEFT JOIN user ON user.id = lead.assigned_user_id
   WHERE note.modified_at BETWEEN CAST('#{@start_datetime}' AS DATETIME) AND CAST('#{@end_datetime}' AS DATETIME)
