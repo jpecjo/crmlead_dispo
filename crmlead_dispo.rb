@@ -36,7 +36,9 @@ def db_query
     'Call Back',
     'Hang Up',
     'Too Far',
-    'Disqualified'
+    'Disqualified',
+    'Language Barrier',
+    'Busy tone'
   UNION SELECT CONCAT(user.first_name,' ',user.last_name) as 'Agent Name' ,
     SUM(lead.call_dispo='Qualified / Appointments') as 'Qualified / Appointments',
     SUM(lead.call_dispo='AM / VM /Fax') as 'AM / VM / Fax',
@@ -46,7 +48,9 @@ def db_query
     SUM(lead.call_dispo='Call Back') as 'Call Back',
     SUM(lead.call_dispo='Hang Up') as 'Hang Up',
     SUM(lead.call_dispo='Too Far') as 'Too Far',
-    SUM(lead.call_dispo='Disqualified') as 'Disqualified'
+    SUM(lead.call_dispo='Disqualified') as 'Disqualified',
+    SUM(lead.call_dispo='Language Barrier') as 'Language Barrier',
+    SUM(lead.call_dispo='Busy tone') as 'Busy tone'
   FROM note LEFT JOIN lead ON note.parent_id = lead.id
   LEFT JOIN user ON user.id = lead.assigned_user_id
   WHERE note.modified_at BETWEEN CAST('#{@start_datetime}' AS DATETIME) AND CAST('#{@end_datetime}' AS DATETIME)
